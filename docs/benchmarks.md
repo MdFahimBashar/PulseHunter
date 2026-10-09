@@ -140,11 +140,10 @@ Docker/WSL scheduling, and finite batches all add overhead. If PostgreSQL logs
 show deadlocks, retain the evidence and report the regression rather than
 disabling reconciliation or weakening locks to obtain a better chart.
 
-Recommended follow-up is to inspect consistent lock ordering across job claims,
-completion, and run aggregation; profile database waits and duplicate publication
-before changing the execution path. A separate reviewed correctness fix should
-include deterministic concurrent-transaction tests and the same benchmark rerun.
-Then use larger fleets, longer repeated trials, randomized concurrency order,
+The [completed correction](concurrency-deadlocks.md) includes a transaction-path
+audit, deterministic concurrent-transaction tests, and the same benchmark rerun.
+Further work should profile database waits and duplicate publication, then use
+larger fleets, longer repeated trials, randomized concurrency order,
 and resource profiling before making capacity or tail-latency claims. A physical
 host/LAN benchmark must be a separately labeled workload with actual hardware
 trials, not inferred from these simulator measurements.
@@ -239,5 +238,5 @@ separate release verification.
 
 The benchmark command itself returned **exit 1** because four measured eight-slot
 batches and its warm-up exceeded the observation deadline. Do not describe this
-baseline as “all benchmarks passed.” The next priority is a separately reviewed
-concurrent-transaction correctness fix, followed by an identical baseline rerun.
+baseline as “all benchmarks passed.” That finding led to the separately reviewed
+[concurrency correction and identical rerun](concurrency-deadlocks.md).
