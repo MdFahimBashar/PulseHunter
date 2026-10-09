@@ -1,4 +1,5 @@
 .git
+.benchmark-results
 .github
 .idea
 .vscode
