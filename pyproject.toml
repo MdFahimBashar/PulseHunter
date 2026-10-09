@@ -43,6 +43,10 @@ pulsehunter-ci = "pulsehunter.ci:main"
 pulsehunter-host-agent = "pulsehunter.host_agent.cli:main"
 
 [project.optional-dependencies]
+benchmark = [
+  "matplotlib>=3.10,<4",
+  "psutil>=7.2,<8",
+]
 host-agent = [
   "psutil>=7.2,<8",
 ]
@@ -76,6 +80,7 @@ pulsehunter = [
 addopts = "-ra --strict-config --strict-markers"
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = [
   "integration: tests that require PostgreSQL and Redis",
 ]

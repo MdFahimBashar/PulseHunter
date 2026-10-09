@@ -11,3 +11,6 @@
 *.pdf binary
 *.png binary
 *.webp binary
+
+# Preserve measured evidence bytes and provenance hashes across checkout platforms.
+docs/benchmarks/** -text -whitespace linguist-generated=true

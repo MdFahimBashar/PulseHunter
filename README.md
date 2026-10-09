@@ -225,6 +225,25 @@ docker compose run --rm migrate python -m pulsehunter.db.seed
 docker compose run --rm migrate python -m pulsehunter.db.seed
 ```
 
+## Performance and fault benchmarks
+
+An isolated Docker-backed suite measures simulator job throughput at 1/2/4/8
+Celery execution slots, end-to-end latency, heartbeat/offline detection, and
+repeated transient-error, timeout, and interrupted-worker trials. It records
+sample sizes, environment, raw JSON/CSV, and charts; these are synthetic simulator
+workloads, not production traffic or physical-hardware capacity.
+
+```bash
+python -m pip install -e ".[dev,benchmark]"
+python -m benchmarks.run --output .benchmark-results/my-baseline
+python -m benchmarks.report .benchmark-results/my-baseline/raw.json --output .benchmark-results/my-baseline/charts
+```
+
+See [benchmark methodology and baseline](docs/benchmarks.md), including failure
+accounting, isolated-stack cleanup, limitations, and reproduction details.
+The [PostgreSQL deadlock investigation and before/after comparison](docs/concurrency-deadlocks.md)
+documents the reproduced lock-upgrade cycle, correctness fix, and identical rerun.
+
 ## Architecture decisions
 
 - **Database first:** job and run state survives broker restarts and is queryable

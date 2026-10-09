@@ -44,6 +44,7 @@ tmp/
 temp/
 scratch/
 debug/
+.benchmark-results/
 
 # Editors and operating systems
 .idea/

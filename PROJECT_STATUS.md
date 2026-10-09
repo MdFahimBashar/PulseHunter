@@ -9,7 +9,7 @@ from transient failures, and exposes runs through REST, a dashboard, and a
 build-gating CI client. The Windows laptop workflow has been verified manually
 end to end on real hardware.
 
-Target runtime: Python 3.14. Local verification: 2026-09-24.
+Target runtime: Python 3.14. Latest automated verification: 2026-10-09.
 
 ## Implemented architecture
 
@@ -47,7 +47,8 @@ Target runtime: Python 3.14. Local verification: 2026-09-24.
 
 ## Verification status
 
-Verified on 2026-09-24:
+Physical acceptance was verified on 2026-09-24; automated verification was
+repeated on 2026-10-09:
 
 - On a physical Windows laptop, the agent registered as `windows-host` with
   `simulated=false`, sent heartbeats over the LAN, and accepted an HTTP job from
@@ -56,20 +57,35 @@ Verified on 2026-09-24:
   uptime, and system results were persisted; memory and storage integrity
   checks passed. The dashboard rendered the saved result, and heartbeat-driven
   online/offline/reconnect behavior was observed.
-- Locally, Python 3.14.5 passed Ruff, Ruff format (66 files), Mypy (41 source
-  files), JavaScript syntax, and 49 pytest tests; the service-only test was
-  skipped. A disposable Python 3.14.7 container passed all 50 tests against
-  real PostgreSQL and Redis.
-- Compose config, image build, and startup passed without deleting volumes.
-  PostgreSQL, Redis, API, worker, Beat, and three simulators were healthy.
-  Alembic reported no schema drift; repeated suite seeding succeeded.
+- Locally, Python 3.14.5 passed Ruff, Ruff format (76 files), Mypy (46 source
+  and benchmark files), and 66 pytest tests with seven live-service cases skipped.
+  A disposable Python 3.14.8 container passed all 73 tests against real
+  PostgreSQL and Redis. Six PostgreSQL concurrency cases also passed ten
+  repetitions (60/60).
+- Compose config, image build, and isolated startup passed. PostgreSQL, Redis,
+  API, and simulators were healthy; Celery answered ping and Beat executed
+  maintenance. Alembic reported no schema drift; repeated suite seeding
+  succeeded. Only disposable test volumes were removed; production data stayed
+  untouched.
 - The Docker simulator E2E run passed healthy on attempt 1 and unreliable on
   attempt 2; slow timed out on attempt 3, so the aggregate failed as designed.
   The CI client returned exit 0 for healthy and exit 1 for slow. `/health`,
-  Swagger/OpenAPI, the dashboard, and the saved physical run-detail page loaded.
+  Swagger/OpenAPI, the dashboard, and a saved simulator run-detail page loaded.
+
+The preserved simulator baseline exposed a PostgreSQL foreign-key lock-upgrade
+cycle in run aggregation. A deterministic PostgreSQL regression reproduced it;
+aggregation now uses FOR NO KEY UPDATE without weakening job/device ownership.
+The identical 5 × 16-job rerun completed 80/80 jobs at each of 1/2/4/8 slots,
+with zero observed deadlocks versus 249 baseline load/warm-up reports. All four
+repeated fault scenarios retained expected behavior (5/5 each); worker-kill
+recovery averaged 9.27 s versus 8.16 s before. See the
+[investigation, comparison and limitations](docs/concurrency-deadlocks.md).
+Baseline samples were not overwritten. This remains a simulator benchmark, not
+a physical-hardware capacity or production reliability claim.
 
 GitHub Actions covers automated tests and Docker simulator flows; it does not
-physically exercise the Windows laptop.
+physically exercise the Windows laptop. Pull-request workflow checks provide
+release verification separately from the recorded benchmark measurements.
 
 ## Known issues and limitations
 

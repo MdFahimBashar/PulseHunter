@@ -95,7 +95,12 @@ def recompute_run_status(
     now: datetime | None = None,
 ) -> TestRun:
     current_time = now or utc_now()
-    test_run = session.scalar(select(TestRun).where(TestRun.id == run_id).with_for_update())
+    # Status aggregation never changes the run's referenced key. PostgreSQL
+    # FOR NO KEY UPDATE excludes other writers but permits FK KEY SHARE locks
+    # acquired by sibling job updates; FOR UPDATE caused a lock-upgrade cycle.
+    test_run = session.scalar(
+        select(TestRun).where(TestRun.id == run_id).with_for_update(key_share=True)
+    )
     if test_run is None:
         raise TestRunNotFoundError(str(run_id))
     if test_run.status in TERMINAL_RUN_STATUSES:
