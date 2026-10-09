@@ -31,7 +31,7 @@ def wait_for_devices(base_url: str, timeout: float) -> list[dict[str, Any]]:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
-            devices = request_json(base_url, "/devices")
+            devices: list[dict[str, Any]] = request_json(base_url, "/devices")
             names = {device["name"] for device in devices if device["status"] == "online"}
             if {"sim-healthy", "sim-slow", "sim-unreliable"} <= names:
                 return devices
