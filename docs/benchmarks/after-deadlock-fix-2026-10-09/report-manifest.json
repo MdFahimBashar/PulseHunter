@@ -1,0 +1,8 @@
+{
+  "input_sha256": "5a7bfc13bc6d00e11675677df07f67e4039773b9ab753484fd647ee6afc712b0",
+  "matplotlib_version": "3.11.2",
+  "calculation_source_sha256": {
+    "analysis.py": "42c24fbbb5897916bfc8b43d790d0dfc0e26294a67a6a1d1e9e24ef330962c07",
+    "report.py": "4667651597c2cdf11066d517185be78fd783911407753b2b39f630fc948c68fc"
+  }
+}

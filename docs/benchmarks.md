@@ -126,6 +126,13 @@ is required; this suite guarantees a repeatable method, not identical timings.
 
 ## Bottlenecks and interpretation
 
+The baseline below is preserved historically. The subsequent
+[run-aggregation deadlock investigation](concurrency-deadlocks.md) confirms the
+cause, records the minimal lock-mode correction and deterministic regression,
+and compares an identical complete rerun. Consult that report for the current
+verified concurrency behavior rather than treating the baseline failure as an
+unresolved issue.
+
 Healthy work alone has a nominal ceiling of `concurrency / 0.4` jobs/second.
 That is a workload arithmetic bound, **not measured system capacity**. Publishing,
 transactions, HTTP clients, aggregation, maintenance traffic, heartbeat writes,

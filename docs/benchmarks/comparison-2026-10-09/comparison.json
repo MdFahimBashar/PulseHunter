@@ -1,0 +1,621 @@
+{
+  "method_equal": true,
+  "scaling": [
+    {
+      "concurrency": 1,
+      "before": {
+        "mean_jobs_per_second": 2.1988795128482366,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 2.1988795128482366,
+          "min": 2.167102863839979,
+          "max": 2.2235857126279517,
+          "p50": 2.191433494718714,
+          "p95": 2.223046754401884,
+          "p99": 2.223477920982738
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 3.994966675,
+          "min": 0.637646,
+          "max": 7.383129,
+          "p50": 4.026784,
+          "p95": 7.19602155,
+          "p99": 7.318499889999999
+        },
+        "deadlocks_including_warmup": {
+          "reports": 0,
+          "snapshots": [
+            "before-reset-6.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      },
+      "after": {
+        "mean_jobs_per_second": 2.2700485544951454,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 2.2700485544951454,
+          "min": 2.256793795622497,
+          "max": 2.2885173925891515,
+          "p50": 2.2695189981435333,
+          "p95": 2.2865154523488265,
+          "p99": 2.2881170045410864
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 3.82123575,
+          "min": 0.536877,
+          "max": 7.089704,
+          "p50": 3.8197905,
+          "p95": 6.9929616999999995,
+          "p99": 7.08942829
+        },
+        "deadlocks_including_warmup": {
+          "reports": 0,
+          "snapshots": [
+            "before-reset-6.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      }
+    },
+    {
+      "concurrency": 2,
+      "before": {
+        "mean_jobs_per_second": 4.09693505116463,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 4.09693505116463,
+          "min": 3.5084295501864404,
+          "max": 4.50619813471561,
+          "p50": 4.462526353309926,
+          "p95": 4.502437265572139,
+          "p99": 4.505445960886916
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 2.403019675,
+          "min": 0.443689,
+          "max": 4.560445,
+          "p50": 2.3360455,
+          "p95": 4.120582949999998,
+          "p99": 4.54847255
+        },
+        "deadlocks_including_warmup": {
+          "reports": 2,
+          "snapshots": [
+            "before-reset-12.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      },
+      "after": {
+        "mean_jobs_per_second": 4.6226777135175325,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 4.6226777135175325,
+          "min": 4.577913512913435,
+          "max": 4.653186385707273,
+          "p50": 4.625067460944918,
+          "p95": 4.648998574945401,
+          "p99": 4.652348823554899
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 1.949567925,
+          "min": 0.431627,
+          "max": 3.495042,
+          "p50": 1.9601285,
+          "p95": 3.4549915,
+          "p99": 3.4760883199999997
+        },
+        "deadlocks_including_warmup": {
+          "reports": 0,
+          "snapshots": [
+            "before-reset-12.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      }
+    },
+    {
+      "concurrency": 4,
+      "before": {
+        "mean_jobs_per_second": 2.661578488997051,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 2.661578488997051,
+          "min": 1.4619538391730167,
+          "max": 3.624504094217172,
+          "p50": 2.939319404266091,
+          "p95": 3.4876021809607742,
+          "p99": 3.5971237115658923
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 5.306896975,
+          "min": 0.435929,
+          "max": 10.944258,
+          "p50": 5.0051935,
+          "p95": 10.5140226,
+          "p99": 10.93090305
+        },
+        "deadlocks_including_warmup": {
+          "reports": 38,
+          "snapshots": [
+            "before-reset-18.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      },
+      "after": {
+        "mean_jobs_per_second": 9.031502489710606,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 9.031502489710606,
+          "min": 8.948170518574445,
+          "max": 9.08422495947584,
+          "p50": 9.049282391906322,
+          "p95": 9.080420374019004,
+          "p99": 9.083464042384472
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 1.1028824125,
+          "min": 0.43464,
+          "max": 1.788075,
+          "p50": 1.1015035,
+          "p95": 1.7682514999999999,
+          "p99": 1.78271327
+        },
+        "deadlocks_including_warmup": {
+          "reports": 0,
+          "snapshots": [
+            "before-reset-18.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      }
+    },
+    {
+      "concurrency": 8,
+      "before": {
+        "mean_jobs_per_second": 0.20081921460158764,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 0.20081921460158764,
+          "min": 0.0,
+          "max": 0.6407749275664018,
+          "p50": 0.13236943236380336,
+          "p95": 0.558810284668668,
+          "p99": 0.624381998986855
+        },
+        "completed_jobs": 27,
+        "requested_jobs": 80,
+        "unfinished_jobs": 53,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 27,
+          "mean": 11.274148333333333,
+          "min": 0.610876,
+          "max": 24.969766,
+          "p50": 12.844822,
+          "p95": 24.6328656,
+          "p99": 24.96070682
+        },
+        "deadlocks_including_warmup": {
+          "reports": 209,
+          "snapshots": [
+            "before-reset-19.log",
+            "before-reset-20.log",
+            "before-reset-21.log",
+            "before-reset-23.log",
+            "before-reset-24.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      },
+      "after": {
+        "mean_jobs_per_second": 16.56625663083723,
+        "throughput_distribution": {
+          "n": 5,
+          "mean": 16.56625663083723,
+          "min": 16.264145995106524,
+          "max": 16.792012039872635,
+          "p50": 16.572582733440363,
+          "p95": 16.789314329884686,
+          "p99": 16.791472497875045
+        },
+        "completed_jobs": 80,
+        "requested_jobs": 80,
+        "unfinished_jobs": 0,
+        "not_submitted_jobs": 0,
+        "latency_seconds_completed_only": {
+          "n": 80,
+          "mean": 0.6961321625,
+          "min": 0.439081,
+          "max": 0.983759,
+          "p50": 0.6852465,
+          "p95": 0.96769925,
+          "p99": 0.98023639
+        },
+        "deadlocks_including_warmup": {
+          "reports": 0,
+          "snapshots": [
+            "before-reset-24.log"
+          ],
+          "jobs_including_warmup": 96
+        }
+      }
+    }
+  ],
+  "faults": {
+    "offline": {
+      "before": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": null,
+        "terminal_rate": null,
+        "latency_seconds": {
+          "n": 5,
+          "mean": 11.9863176,
+          "min": 11.683388,
+          "max": 12.790656,
+          "p50": 11.855807,
+          "p95": 12.6047476,
+          "p99": 12.75347432
+        },
+        "attempt_counts": {},
+        "observed_retry_backoff_seconds": []
+      },
+      "after": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": null,
+        "terminal_rate": null,
+        "latency_seconds": {
+          "n": 5,
+          "mean": 11.8688608,
+          "min": 11.772354,
+          "max": 12.035353,
+          "p50": 11.860539,
+          "p95": 12.0007254,
+          "p99": 12.028427480000001
+        },
+        "attempt_counts": {},
+        "observed_retry_backoff_seconds": []
+      }
+    },
+    "timeout": {
+      "before": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": {
+          "successes": 0,
+          "trials": 5,
+          "rate": 0.0,
+          "wilson_95": [
+            0,
+            0.43448246478317476
+          ]
+        },
+        "terminal_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "latency_seconds": {
+          "n": 5,
+          "mean": 12.1277656,
+          "min": 12.106374,
+          "max": 12.162618,
+          "p50": 12.130477,
+          "p95": 12.1565484,
+          "p99": 12.16140408
+        },
+        "attempt_counts": {
+          "3": 5
+        },
+        "observed_retry_backoff_seconds": [
+          1.0,
+          2.0
+        ]
+      },
+      "after": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": {
+          "successes": 0,
+          "trials": 5,
+          "rate": 0.0,
+          "wilson_95": [
+            0,
+            0.43448246478317476
+          ]
+        },
+        "terminal_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "latency_seconds": {
+          "n": 5,
+          "mean": 12.0818828,
+          "min": 12.078407,
+          "max": 12.084792,
+          "p50": 12.083623,
+          "p95": 12.084609,
+          "p99": 12.0847554
+        },
+        "attempt_counts": {
+          "3": 5
+        },
+        "observed_retry_backoff_seconds": [
+          1.0,
+          2.0
+        ]
+      }
+    },
+    "transient": {
+      "before": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "terminal_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "latency_seconds": {
+          "n": 5,
+          "mean": 1.4926987999999999,
+          "min": 1.467696,
+          "max": 1.560797,
+          "p50": 1.470791,
+          "p95": 1.5474268,
+          "p99": 1.55812296
+        },
+        "attempt_counts": {
+          "2": 5
+        },
+        "observed_retry_backoff_seconds": [
+          1.0
+        ]
+      },
+      "after": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "terminal_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "latency_seconds": {
+          "n": 5,
+          "mean": 1.4727908,
+          "min": 1.452835,
+          "max": 1.539044,
+          "p50": 1.45783,
+          "p95": 1.5229920000000001,
+          "p99": 1.5358336000000001
+        },
+        "attempt_counts": {
+          "2": 5
+        },
+        "observed_retry_backoff_seconds": [
+          1.0
+        ]
+      }
+    },
+    "worker_loss": {
+      "before": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "terminal_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "latency_seconds": {
+          "n": 5,
+          "mean": 8.1635306,
+          "min": 8.012967,
+          "max": 8.434659,
+          "p50": 8.133517,
+          "p95": 8.3852646,
+          "p99": 8.42478012
+        },
+        "attempt_counts": {
+          "2": 5
+        },
+        "observed_retry_backoff_seconds": []
+      },
+      "after": {
+        "expected_behavior_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "pass_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "terminal_rate": {
+          "successes": 5,
+          "trials": 5,
+          "rate": 1.0,
+          "wilson_95": [
+            0.5655175352168251,
+            1
+          ]
+        },
+        "latency_seconds": {
+          "n": 5,
+          "mean": 9.273914,
+          "min": 9.061295,
+          "max": 9.390686,
+          "p50": 9.296388,
+          "p95": 9.378682000000001,
+          "p99": 9.3882852
+        },
+        "attempt_counts": {
+          "2": 5
+        },
+        "observed_retry_backoff_seconds": []
+      }
+    }
+  },
+  "changed_source_files": [
+    "benchmarks/analysis.py",
+    "benchmarks/report.py",
+    "src/pulsehunter/services/runs.py"
+  ],
+  "runtime_package_changes": {
+    "removed": [
+      "pulsehunter @ file:///wheels/pulsehunter-0.1.0-py3-none-any.whl#sha256=0fe332634abe4927ff1c94ad4445c745cfb0355ec083f29e25a7416455b61464"
+    ],
+    "added": [
+      "pulsehunter @ file:///wheels/pulsehunter-0.1.0-py3-none-any.whl#sha256=1620439dff89d9eadf0af3cf9247e424303c63784a22864cda039f213b1294a6"
+    ]
+  },
+  "server_versions_equal": true,
+  "third_party_packages_equal": true,
+  "runner_source_equal": true,
+  "input_sha256": {
+    "before": "2c950c788a8495ef84ef98020ee5b724dcc02780cecf300a8c149056f300a10a",
+    "after": "5a7bfc13bc6d00e11675677df07f67e4039773b9ab753484fd647ee6afc712b0"
+  },
+  "calculation_source_sha256": {
+    "analysis.py": "42c24fbbb5897916bfc8b43d790d0dfc0e26294a67a6a1d1e9e24ef330962c07",
+    "compare.py": "cf21659cb945479932a5514718eb8204b3caaa4b4447665024238d4d15a6a446"
+  }
+}

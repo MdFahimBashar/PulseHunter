@@ -241,6 +241,8 @@ python -m benchmarks.report .benchmark-results/my-baseline/raw.json --output .be
 
 See [benchmark methodology and baseline](docs/benchmarks.md), including failure
 accounting, isolated-stack cleanup, limitations, and reproduction details.
+The [PostgreSQL deadlock investigation and before/after comparison](docs/concurrency-deadlocks.md)
+documents the reproduced lock-upgrade cycle, correctness fix, and identical rerun.
 
 ## Architecture decisions
 

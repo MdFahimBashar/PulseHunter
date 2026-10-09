@@ -1,0 +1,41 @@
+{
+  "note": "Counts are per log snapshot and may overlap; includes warm-up.",
+  "logs": {
+    "before-reset-12.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "before-reset-18.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "before-reset-24.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "before-reset-6.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "concurrency-1.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "concurrency-2.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "concurrency-4.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "concurrency-8.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    },
+    "services.log": {
+      "postgres_deadlock_reports": 0,
+      "worker_deadlock_task_failures": 0
+    }
+  }
+}
