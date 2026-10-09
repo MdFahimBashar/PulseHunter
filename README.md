@@ -2,290 +2,213 @@
 
 # PulseHunter
 
-**Distributed Device Validation Platform**
-
 [![PulseHunter CI](https://github.com/MdFahimBashar/PulseHunter/actions/workflows/ci.yml/badge.svg)](https://github.com/MdFahimBashar/PulseHunter/actions/workflows/ci.yml)
 
-PulseHunter is a distributed validation control plane for scheduling and
-executing tests across networked devices, with heartbeat-based health
-monitoring, retries, timeouts, durable job state, and automated failure
-recovery. Deterministic Python simulators make the complete workflow runnable
-without a physical hardware lab.
+**Distributed device validation, from a dashboard or a CI pipeline.**
 
-## Problem
+PulseHunter schedules concurrent validation jobs across networked agents,
+reserves each device exclusively, and preserves results when jobs fail or
+workers disappear. It brings device availability, execution, retries, and
+results into one control plane instead of requiring engineers to coordinate
+machines and inspect them individually. Run the full system with three Docker
+simulators, or connect the Windows host agent for real system and integrity
+checks. An independent project by **Md Fahim Bashar**.
 
-Firmware and device teams cannot validate every build by manually flashing and
-checking a bench full of boards. A useful lab service must know which devices
-are alive and available, allocate them without double-booking, perform work
-asynchronously, survive temporary failures, and preserve results for engineers.
+![PulseHunter dashboard with three registered simulators and completed validation runs](docs/images/dashboard.png)
 
-## Features
+*Actual local Docker execution. The fleet above contains simulators;
+physical Windows-laptop acceptance was verified separately.*
 
-- registration, heartbeats, online/offline/busy state, and exclusive reservation
-- healthy, slow, and unreliable standalone device agents
-- Windows host agent with predefined checks, verified on a physical laptop
-- PostgreSQL-backed test suites, runs, jobs, results, logs, errors, and timings
-- Redis/Celery task delivery with four concurrent worker slots
-- bounded retries with exponential backoff, HTTP timeouts, and worker leases
-- a periodic reconciler that recovers durable queued work and expired leases
-- run-status aggregation and correct device release after terminal jobs
-- REST/OpenAPI endpoints plus a dashboard for compatible device selection and readable results
-- API-based CI client that gates a build on the final device-validation result
-- Alembic migrations, deterministic seeding, automated tests, and GitHub Actions
+[Quick start](#quick-start) · [Live demo](docs/demo.md) ·
+[Architecture](docs/architecture.md) · [Deadlock investigation](docs/concurrency-deadlocks.md)
+
+## What it does
+
+- **Coordinate a device fleet:** registration, heartbeats, online/busy/offline
+  state, exclusive reservation, and compatible-device selection in the dashboard.
+- **Execute and recover:** concurrent Celery workers, bounded exponential
+  retries, HTTP deadlines, database leases, and reconciliation after worker loss.
+- **Keep durable evidence:** PostgreSQL stores run/job state, attempts, results,
+  logs, errors, timing, and optional source-commit metadata.
+- **Gate CI builds:** a CLI submits a run, waits for the aggregate outcome,
+  prints per-device results, and returns a meaningful process exit code.
+- **Validate a physical host:** the Windows agent performs bounded CPU/system
+  inventory, memory/storage integrity, network, battery, and uptime checks.
 
 ## Architecture
 
 ```mermaid
-flowchart LR
-    U["User / dashboard"] --> A["FastAPI control plane"]
-    C["CI client"] --> A
-    A --> P[("PostgreSQL\ndurable source of truth")]
-    A --> R[("Redis\nCelery broker only")]
-    R --> W["Celery workers\nconcurrency 4"]
-    W --> P
-    W --> D1["Healthy agent"]
-    W --> D2["Slow agent"]
-    W --> D3["Unreliable agent"]
-    W --> H["Windows host agent (optional)"]
-    D1 & D2 & D3 -->|"register + heartbeat"| A
-    H -->|"register + heartbeat"| A
-    B["Celery Beat\nreconciler + liveness"] --> P
-    B --> R
+flowchart TB
+    UI["Dashboard / REST clients"] <-->|"HTTP: submit and read runs"| API["FastAPI control plane"]
+    CI["CI client"] <-->|"HTTP: submit and poll"| API
+    API -->|"commit reservations and jobs"| DB[("PostgreSQL: durable state")]
+    API -->|"publish job UUIDs after commit"| R[("Redis: Celery broker")]
+    B["Celery Beat"] -->|"schedule maintenance tasks"| R
+    R -->|"deliver tasks"| W["Celery workers"]
+    W -->|"claims, leases, results, liveness"| DB
+    W -->|"retry / reconcile dispatch"| R
+    W <-->|"HTTP execution / results"| A["Device agents: Docker simulators or Windows host"]
+    A -->|"HTTP registration and heartbeats"| API
 ```
 
-PostgreSQL is authoritative. Redis contains task messages, not permanent job
-results. A Celery message carries only a job UUID; the worker locks and reads
-the current state from PostgreSQL before acting. Device agents are separate
-HTTP processes. The optional Windows host agent implements that same boundary
-outside Docker. See [docs/architecture.md](docs/architecture.md) for the
-detailed state and failure model.
+The dashboard is served by FastAPI; it is not another service. Beat schedules
+maintenance through Redis, and workers perform the database operations.
+Redis holds task messages, **not permanent results**. Agents execute checks in
+separate processes; workers release database transactions before making HTTP
+calls. [Execution sequence, state machines, and failure model →](docs/architecture.md)
+
+## Engineering decisions
+
+| Concern | Implementation |
+|---|---|
+| Two runs want the same device | Ordered PostgreSQL row locks with `SKIP LOCKED`; reservation and job creation commit together. Retries keep the reservation. |
+| Duplicate delivery or a late worker result | A locked job claim, lease, and matching task owner protect durable state; terminal results cannot be overwritten. |
+| Worker dies or queue publication fails | Workers reconcile expired leases and committed queued jobs through periodic tasks scheduled by Beat. |
+| Repeated transient errors or a slow device | Capped exponential backoff, per-device HTTP deadlines, and a finite attempt budget; terminal jobs release their devices. |
+| Concurrent job results update one run | `FOR NO KEY UPDATE` serializes aggregate writers while allowing foreign-key key-share locks. |
+
+Delivery is **at least once**. Agent execution deduplication is process-local;
+an agent restart loses that cache. The system does not promise exactly-once
+physical execution. [Correctness tests and lock analysis →](docs/concurrency-deadlocks.md)
+
+## Performance investigation: reproduce, diagnose, correct
+
+Concurrent job updates exposed a PostgreSQL lock-upgrade cycle on their shared
+parent run. A synchronized regression reproduced it; changing the aggregation
+lock from `FOR UPDATE` to `FOR NO KEY UPDATE` removed the observed conflict
+while preserving writer serialization and device exclusivity.
+
+| Recorded simulator measurement | Before | After |
+|---|---:|---:|
+| Throughput, 4 execution slots | 2.662 jobs/s | 9.032 jobs/s |
+| Throughput, 8 execution slots | 0.201 jobs/s | 16.566 jobs/s |
+| Completed jobs, 8 slots | 27/80 | 80/80 |
+| Unfinished jobs, 8 slots | 53/80 | 0/80 |
+| PostgreSQL deadlock reports, all load stages including warm-up | 249 | 0 |
+
+![Measured before/after simulator throughput at 1, 2, 4, and 8 worker slots](docs/benchmarks/comparison-2026-10-09/comparison-throughput.png)
+
+The **82.4× eight-slot improvement is recovery from a deadlock-degraded
+baseline**, not 82× scaling of an already healthy system. Each level used five
+batches of 16 jobs; slots are prefork processes in one Celery worker container.
+The 53 unfinished baseline jobs remain in the findings. These short simulated
+trials are not production traffic or physical-hardware capacity measurements.
+Worker-interruption recovery averaged **8.16 → 9.27 seconds**; that metric did
+not improve. The release review passed **73 Docker-backed tests** and **60/60
+repeated concurrency checks**.
+
+[Root cause, latency percentiles, fault trials, and trade-offs](docs/concurrency-deadlocks.md) ·
+[Original raw data](docs/benchmarks/baseline-2026-10-08/raw.json) ·
+[After raw data](docs/benchmarks/after-deadlock-fix-2026-10-09/raw.json) ·
+[Structured comparison](docs/benchmarks/comparison-2026-10-09/comparison.json)
 
 ## Quick start
 
-Requirements: Docker Desktop with Linux containers and Docker Compose. From a
-fresh clone, enter the repository root and run:
+Install Docker with Linux containers and Docker Compose, then:
 
 ```bash
+git clone https://github.com/MdFahimBashar/PulseHunter.git
+cd PulseHunter
 docker compose up --build --detach --wait
 ```
 
-Wait until the three agents have registered, then open:
+Open the **[dashboard](http://127.0.0.1:8000/)** and wait for the three simulators
+to appear online. Select **Simulated Device Smoke Test**, choose **All compatible**,
+and launch a run. Healthy passes on attempt 1; unreliable recovers on attempt 2;
+slow times out after attempt 3. The aggregate run intentionally **fails**,
+making bounded retries and timeout handling visible. For a passing run, choose
+only `sim-healthy`.
 
-- dashboard: <http://127.0.0.1:8000/>
-- Swagger/OpenAPI: <http://127.0.0.1:8000/docs>
-- health: <http://127.0.0.1:8000/health>
+[Swagger / API explorer](http://127.0.0.1:8000/docs) ·
+[Dependency health](http://127.0.0.1:8000/health) ·
+[Setup, shutdown, and troubleshooting](docs/development.md)
 
-The stack includes PostgreSQL, Redis, a one-shot migration/seed service, the
-API, a Celery worker, Celery Beat, and three device agents. Only the API is
-published to the host.
+No `.env` file or host Python installation is needed for Docker startup.
+PostgreSQL and Redis stay on the internal network; the API binds to localhost.
+Stop with `docker compose down` to preserve the database.
 
-Stop the system without deleting its database:
+## See execution and recovery
 
-```bash
-docker compose down
-```
-
-Use `docker compose down --volumes` only when you intentionally want a clean
-local database and Redis volume.
-
-## Demo workflow
-
-The dashboard offers all compatible online devices or an explicit selection
-for the chosen suite. Open a created run to inspect per-device attempts, logs,
-duration, errors, and final status.
-
-From PowerShell, the all-device API flow is:
-
-```powershell
-$suite = Invoke-RestMethod http://127.0.0.1:8000/test-suites |
-  Where-Object slug -eq 'smoke' | Select-Object -First 1
-$body = @{ test_suite_id = $suite.id } | ConvertTo-Json
-$run = Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/runs `
-  -ContentType 'application/json' -Body $body
-$run
-Invoke-RestMethod "http://127.0.0.1:8000/runs/$($run.id)/jobs"
-```
-
-Or run the automated full-flow verifier after the stack is healthy:
+With the stack running and Python 3.14 installed, run this from the repository
+root (standard library only):
 
 ```bash
-python scripts/verify_e2e.py --timeout 90
+python -m scripts.demo
 ```
 
-The default all-device run is expected to be `failed`: healthy passes on its
-first attempt, unreliable returns one transient failure then passes, and slow
-exhausts three HTTP timeouts. That intentional mixed result makes retries,
-timeouts, persistence, aggregation, and release behavior visible in one run.
+It verifies registration, runs a healthy job, exercises the unreliable agent's
+configured HTTP 503 and recovery, then launches the three-device mixed run.
+It prints real run links, state changes, attempt counts, and final outcomes.
+Exit `0` means the **demonstration's expected behavior** was verified, including
+the intentional timeout. [Recording checklist and screenshot provenance →](docs/demo.md)
+
+<details>
+<summary>See the persisted per-device outcomes</summary>
+
+![Actual mixed simulator run: healthy passes, unreliable retries successfully, slow times out](docs/images/run-detail.png)
+
+</details>
 
 ## CI integration
 
-After installing the Python package, a CI job can create a run and wait for its
-result using the same API and workers as the dashboard:
+Install the package with `python -m pip install .` from a clone. A trusted CI
+runner that can reach the server can use:
 
 ```bash
 pulsehunter-ci run --server "$PULSEHUNTER_URL" --suite smoke \
   --device-id "$PULSEHUNTER_DEVICE_ID" --wait --timeout 120
 ```
 
-`--suite` takes the slug from `GET /test-suites`; repeat `--device-id` to request
-multiple devices, or omit it to reserve every available device. `--wait` makes
-the process a build gate: exit `0` means the run passed; `1` means validation
-failed or was cancelled; `2` means a client/API/start error; `3` means the
-client's wait deadline expired. Without `--wait`, exit `0` means only that the
-run was accepted, **not** that validation passed. The default all-device demo
-includes a slow agent and intentionally fails, so select a passing device for
-a green CI example.
+With `--wait`, exit `0` means validation passed; any nonzero exit fails the build.
+Optional source metadata links the persisted run to a repository, commit, ref,
+and build ID. [Exit codes and configuration](docs/ci-integration.md) ·
+[Copyable GitHub Actions example](examples/github-actions-device-validation.yml)
 
-Optional `--repository`, `--commit`, `--ref`, and `--build-id` attach source
-context to the run (the commit SHA is required if any source field is used).
-`GET /runs/{run_id}` returns this context, making the triggering commit
-traceable without changing job execution. See the
-[GitHub Actions example](examples/github-actions-device-validation.yml) for a
-trusted self-hosted runner on the lab network. PulseHunter has no agent/user
-authentication or TLS in this MVP; source context is caller-supplied, not
-cryptographically verified. Do not expose its API to an untrusted CI runner or
-the public internet.
+## Tests and reproducibility
 
-## Physical Windows host agent
-
-An optional agent runs directly on a trusted-LAN Windows laptop and performs
-real, bounded system and integrity checks. It registers as `windows-host` with
-`simulated=false`; the three Docker simulators remain available. On the
-dashboard, choose `host-health`, select the online physical host, and open the
-run to see readable system and integrity results. Registration, LAN execution,
-result persistence, dashboard rendering, and offline/reconnect behavior were
-manually verified on a physical Windows laptop; the validation passed on its
-first attempt. GitHub Actions tests the agent contract and Docker simulators,
-not the physical laptop. See [Windows host agent setup](docs/windows-host-agent.md)
-for Python, firewall, startup, and verification steps.
-
-## API
-
-| Method | Path | Purpose |
-|---|---|---|
-| `GET` | `/health` | Check PostgreSQL and Redis connectivity |
-| `GET` | `/devices` | List the device fleet |
-| `GET` | `/devices/{device_id}` | Read one device |
-| `GET` | `/test-suites` | List predefined validation suites |
-| `GET` | `/runs` | List recent runs and aggregate counts |
-| `POST` | `/runs` | Reserve devices, persist jobs, and queue a run |
-| `GET` | `/runs/{run_id}` | Read aggregate run state |
-| `GET` | `/runs/{run_id}/jobs` | Read per-device results, logs, errors, and attempts |
-| `POST` | `/internal/devices/register` | Register or refresh an agent by name |
-| `POST` | `/internal/devices/{device_id}/heartbeat` | Update agent liveness/capabilities |
-
-`POST /runs` accepts a `test_suite_id`, an optional non-empty `device_ids` list,
-and optional validated `source` context. Without device IDs it selects every
-fresh online device. It returns `409` when the requested devices cannot be
-reserved.
-
-## Simulation modes
-
-- **healthy** waits 0.4 seconds and returns a passing result with logs.
-- **unreliable** deterministically returns HTTP 503 once per job, then passes;
-  this exercises retry and exponential-backoff behavior reproducibly.
-- **slow** continues a 20-second execution while each worker HTTP call times
-  out after 3 seconds; three bounded attempts end in `timed_out`.
-
-The agent execution endpoint is idempotent by job UUID within one agent
-process. An accepted execution continues even if the worker's HTTP request
-times out, and a duplicate request attaches to the same in-memory task.
-
-## Testing and local development
-
-Python 3.14 is the supported development runtime.
+Python 3.14; install development tools with `python -m pip install -e ".[dev,benchmark]"`
+inside a virtual environment, then:
 
 ```bash
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
 ruff check .
 ruff format --check .
-mypy src
+mypy src benchmarks
 pytest -W error
-```
-
-The default Compose network intentionally keeps PostgreSQL and Redis off host
-ports. GitHub Actions runs the `integration` test against real service
-containers. Locally, the supported cross-service verification is:
-
-```bash
-docker compose up --build --detach --wait
 python scripts/verify_e2e.py --timeout 90
+python scripts/verify_ci.py --timeout 90
 ```
 
-The one-shot `migrate` service applies migrations and seeds both predefined suites
-during Compose startup. With the Compose database running, verify schema drift
-and seed idempotency from the same container network:
+The last two commands require the running Compose stack. Local pytest skips
+seven service-dependent cases unless explicitly enabled; GitHub Actions runs
+those against PostgreSQL/Redis and separately builds and exercises the complete
+Docker stack. [Development and real-service test instructions →](docs/development.md)
+
+The isolated benchmark measures 1/2/4/8 slots and repeats missed-heartbeat,
+transient-error, timeout, and interrupted-worker trials:
 
 ```bash
-docker compose run --rm migrate alembic check
-docker compose run --rm migrate python -m pulsehunter.db.seed
-docker compose run --rm migrate python -m pulsehunter.db.seed
+python -m benchmarks.run --output .benchmark-results/my-run --trials 5 --fault-trials 5 --fleet 16 --concurrency 1 2 4 8
+python -m benchmarks.report .benchmark-results/my-run/raw.json --output .benchmark-results/my-run
+python -m benchmarks.compare docs/benchmarks/baseline-2026-10-08 .benchmark-results/my-run --output .benchmark-results/my-comparison
 ```
 
-## Performance and fault benchmarks
+Use a new output folder. The harness owns a separate Docker project and volumes;
+no application database is reused. [Methodology, environment, and cleanup →](docs/benchmarks.md)
 
-An isolated Docker-backed suite measures simulator job throughput at 1/2/4/8
-Celery execution slots, end-to-end latency, heartbeat/offline detection, and
-repeated transient-error, timeout, and interrupted-worker trials. It records
-sample sizes, environment, raw JSON/CSV, and charts; these are synthetic simulator
-workloads, not production traffic or physical-hardware capacity.
+## Scope and limitations
 
-```bash
-python -m pip install -e ".[dev,benchmark]"
-python -m benchmarks.run --output .benchmark-results/my-baseline
-python -m benchmarks.report .benchmark-results/my-baseline/raw.json --output .benchmark-results/my-baseline/charts
-```
+- **Simulators:** deterministic healthy, slow, and transient-failure agents;
+  all published performance numbers use these simulated workloads.
+- **Physical hardware:** the Windows host agent was manually verified on one
+  laptop over a LAN, including persisted results and offline/reconnect behavior.
+  CI tests its contract, not a physical laptop. [Windows setup →](docs/windows-host-agent.md)
+- **Deployment:** trusted local networks only. No authentication, authorization,
+  or TLS; registered endpoint URLs are trusted. Read [SECURITY.md](SECURITY.md).
+- **Scheduling:** dashboard compatibility filtering is implemented; API-level
+  capability matching, priorities, and cancellation are not. API/CLI callers
+  should select compatible devices explicitly. No firmware flashing is provided.
 
-See [benchmark methodology and baseline](docs/benchmarks.md), including failure
-accounting, isolated-stack cleanup, limitations, and reproduction details.
-The [PostgreSQL deadlock investigation and before/after comparison](docs/concurrency-deadlocks.md)
-documents the reproduced lock-upgrade cycle, correctness fix, and identical rerun.
-
-## Architecture decisions
-
-- **Database first:** job and run state survives broker restarts and is queryable
-  without consulting Celery internals.
-- **At-least-once, idempotent processing:** duplicate task delivery is accepted;
-  row locks, worker leases, ownership checks, and immutable terminal states stop
-  duplicates from corrupting durable results.
-- **Reconciliation closes the publish gap:** a run is committed before Redis is
-  contacted. If publication fails, Beat republishes the still-queued job.
-- **One codebase, distinct processes:** API, worker, scheduler, and agents reuse
-  one typed Python package but have separate runtime responsibilities.
-- **HTTP device boundary:** new agent types can use the same contract without
-  coupling device logic to Celery.
-
-## Current limitations
-
-- This is a trusted-local-network MVP: there is no user authentication, agent
-  authentication, TLS termination, or authorization.
-- Agent-provided endpoint URLs are trusted. Do not expose registration to an
-  untrusted network because workers make requests to those URLs.
-- Agent idempotency is in memory and is lost when an agent restarts.
-- Cancellation, priorities, per-capability scheduling, artifacts, and log
-  streaming are not implemented.
-- The seeded suites are predefined simulator and Windows-host checks, not a
-  custom test DSL. There is no capability-aware scheduling; select the Windows
-  host explicitly for `host-health`.
-- Celery Beat should have exactly one instance; multiple schedulers can cause
-  harmless duplicate publications but add noise.
-
-## Roadmap
-
-These are planned directions, not implemented features:
-
-- authenticated agent enrollment, authorization, and TLS
-- endpoint allowlisting or service discovery for device agents
-- capability-aware scheduling, priorities, and cancellation
-- artifact retention, log streaming, metrics, and tracing
-- durable agent-side idempotency and additional physical-device integrations
-- Raspberry Pi and microcontroller gateways
-
-## Documentation and security
-
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the current implementation
-status and [SECURITY.md](SECURITY.md) before using the software outside a
-local development machine. PulseHunter is MIT licensed.
+Future work: authenticated agent enrollment and TLS, durable agent idempotency,
+capability-aware scheduling, and separately tested Raspberry Pi/microcontroller
+integrations. [Implementation status](PROJECT_STATUS.md) · [API reference](docs/api.md) ·
+[MIT license](LICENSE)

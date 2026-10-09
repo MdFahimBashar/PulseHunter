@@ -87,6 +87,18 @@ GitHub Actions covers automated tests and Docker simulator flows; it does not
 physically exercise the Windows laptop. Pull-request workflow checks provide
 release verification separately from the recorded benchmark measurements.
 
+## Public presentation verification
+
+The 2026-10-09 presentation update adds authentic simulator dashboard/run
+screenshots, a narrated API demonstration, and focused setup/API/CI guides.
+The deadlock benchmark captures and their original verification counts above
+are unchanged. With three additional demo checks, the complete suite passed
+**76 tests** against isolated Docker PostgreSQL/Redis; local pytest passed
+69 with seven live-service skips. Ruff, formatting, and Mypy passed. The real
+demo, simulator E2E, packaged CI success/failure paths, migration drift check,
+and worker ping passed. Documentation explains how to record a demo; no video
+or new physical-hardware test is claimed.
+
 ## Known issues and limitations
 
 - Trusted-local-development security model: no users, agent auth, TLS, or RBAC.

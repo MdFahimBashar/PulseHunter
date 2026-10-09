@@ -65,11 +65,17 @@ startup—owns schema evolution.
 
 Redis is only the Celery broker. A message carries a job UUID; it is not a
 durable result record. Workers run up to four tasks concurrently and use late
-acknowledgement, rejection on worker loss, and prefetch 1. Celery Beat runs two
-periodic maintenance tasks:
+acknowledgement, rejection on worker loss, and prefetch 1. Celery Beat publishes
+two periodic maintenance tasks through Redis; workers execute them:
 
 1. mark devices offline when their heartbeat is stale;
 2. republish queued/due jobs and recover expired worker leases.
+
+Run aggregation uses `FOR NO KEY UPDATE`: concurrent writers still serialize,
+but sibling jobs' foreign-key key-share locks remain compatible. The previous
+`FOR UPDATE` caused a reproducible lock-upgrade deadlock. See the
+[investigation and concurrency regressions](concurrency-deadlocks.md) for the
+transaction audit, measured correction, and limits of that evidence.
 
 ### Device agents
 
